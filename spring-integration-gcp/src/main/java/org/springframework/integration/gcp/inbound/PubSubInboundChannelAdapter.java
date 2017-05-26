@@ -17,11 +17,14 @@
 
 package org.springframework.integration.gcp.inbound;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.google.auth.oauth2.GoogleCredentials;
 import com.google.cloud.pubsub.spi.v1.AckReplyConsumer;
 import com.google.cloud.pubsub.spi.v1.Subscriber;
+import com.google.cloud.pubsub.spi.v1.SubscriptionAdminSettings;
 import com.google.pubsub.v1.PubsubMessage;
 import com.google.pubsub.v1.SubscriptionName;
 
@@ -39,11 +42,19 @@ public class PubSubInboundChannelAdapter extends MessageProducerSupport {
 
 	private String projectId;
 	private String subscriptionName;
+	private GoogleCredentials credentials;
 	private Subscriber subscriber;
 
-	public PubSubInboundChannelAdapter(String projectId, String subscriptionName) {
+	public PubSubInboundChannelAdapter(String projectId, String subscriptionName)
+			throws IOException {
+		this(projectId, subscriptionName, GoogleCredentials.getApplicationDefault());
+	}
+
+	public PubSubInboundChannelAdapter(String projectId, String subscriptionName,
+									   GoogleCredentials credentials) {
 		this.projectId = projectId;
 		this.subscriptionName = subscriptionName;
+		this.credentials = credentials;
 	}
 
 	@Override
@@ -54,6 +65,10 @@ public class PubSubInboundChannelAdapter extends MessageProducerSupport {
 		subscriber = Subscriber
 				.defaultBuilder(SubscriptionName.create(projectId, this.subscriptionName),
 						this::receiveMessage)
+				.setChannelProvider(
+						SubscriptionAdminSettings.defaultChannelProviderBuilder()
+								.setCredentialsProvider(() -> credentials)
+								.build())
 				.build();
 		subscriber.startAsync();
 	}

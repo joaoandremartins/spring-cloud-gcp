@@ -32,12 +32,11 @@ public class CredentialsAutoConfiguration implements EnvironmentAware {
 	public GoogleCredentials googleCredentials(ResourceLoader resourceLoader)
 			throws Exception {
 		if (!StringUtils.isEmpty(this.environment.getProperty(AUTH_LOCATION_KEY))) {
-			return GoogleCredentials.fromStream(new FileInputStream(resourceLoader
-					.getResource(this.environment.getProperty(AUTH_LOCATION_KEY))
-					.getFile()));
+			return GoogleCredentials.fromStream(
+					new FileInputStream(resourceLoader.getResource(
+							this.environment.getProperty(AUTH_LOCATION_KEY)).getFile()));
 		}
-		else {
-			return GoogleCredentials.getApplicationDefault();
-		}
+
+		return GoogleCredentials.getApplicationDefault();
 	}
 }
